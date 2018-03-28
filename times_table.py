@@ -1,5 +1,7 @@
 import operator
 import random
+import time
+import itertools
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -17,6 +19,8 @@ class QuizQuestion:
     def as_string(self):
         return "{} x {}".format(self.first_number, self.second_number)
 
+    def equivalent_to(self, ls):
+        return (self.first_number == ls.first_number and self.second_number == ls.second_number) or (self.first_number == ls.second_number and self.second_number == ls.first_number)
 
 class QuizQuestionList(list):
     """List of QuizQuestions
@@ -27,11 +31,16 @@ class QuizQuestionList(list):
             for j in question_range:
                 self.append(QuizQuestion(i, j))
 
+        for x, y in itertools.combinations(self, 2):
+            if x.equivalent_to(y):
+                self.remove(y)
+
     def next_question(self):
         return self.pop(random.randrange(len(self)))
 
     def new_question(self):
         return self[random.randrange(len(self))]
+
 
 
 class App(QMainWindow):
@@ -44,7 +53,7 @@ class App(QMainWindow):
         self.top = 50
         self.width = 480
         self.height = 320
-        self.question_list = QuizQuestionList(2, 4)
+        self.question_list = QuizQuestionList(2, 10)
         self.question = self.question_list.new_question()
         self.initUI()
 
@@ -53,6 +62,7 @@ class App(QMainWindow):
         self.setCentralWidget(central_widget)
         layout = QGridLayout()
         central_widget.setLayout(layout)
+        menu_bar = QMenuBar()
 
         label_style = "font-size: 54px"
 
@@ -93,32 +103,17 @@ class App(QMainWindow):
 
 
     @pyqtSlot()
-    def on_answer_button_click(self):
-        if self.text_input.text() == str(self.question.answer):
-            self.next_prompt()
-            self.statusBar().showMessage("{} is correct! {} to go!"
-                                        .format(self.text_input.text(),
-                                                len(self.question_list)))
-        else:
-            self.statusBar().showMessage("{} is not correct. Keep going!".format(self.text_input.text()))
-            self.new_prompt()
-
-        self.text_input.clear()
-
-        if not len(self.question_list):
-            self.statusBar().showMessage("You did it!")
-            self.question_label.setText(">:)")
-
-    @pyqtSlot()
     def on_return_pressed(self):
         if self.text_input.text() == str(self.question.answer):
-            self.next_prompt()
-            self.statusBar().showMessage("{} is correct! {} to go!"
-                                        .format(self.text_input.text(),
-                                                len(self.question_list)))
+            self.question_label.setText("✓")
+            QTimer.singleShot(800, self.next_prompt)
+            self.statusBar().showMessage("{} to go!"
+                                        .format(len(self.question_list)))
         else:
             self.statusBar().showMessage("{} is not correct. Keep going!".format(self.text_input.text()))
-            self.new_prompt()
+            self.question_label.setText("✘")
+            self.question_label.setStyleSheet("color: black; font-size: 54px")
+            QTimer.singleShot(1000, self.new_prompt)
 
         self.text_input.clear()
 
