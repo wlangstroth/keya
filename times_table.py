@@ -6,6 +6,7 @@ import itertools
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtMultimedia import *
 
 
 class QuizQuestion:
@@ -16,31 +17,26 @@ class QuizQuestion:
         self.second_number = second_number
         self.answer = op(self.first_number, self.second_number)
 
-    def as_string(self):
-        return "{} x {}".format(self.first_number, self.second_number)
+    def __eq__(self, other):
+        return self.answer == other.answer
 
-    def equivalent_to(self, ls):
-        return (self.first_number == ls.first_number and self.second_number == ls.second_number) or (self.first_number == ls.second_number and self.second_number == ls.first_number)
+    def __str__(self):
+        return "{} x {} = {}".format(self.first_number, self.second_number, self.answer)
 
 class QuizQuestionList(list):
     """List of QuizQuestions
     """
     def __init__(self, lowest_number, highest_number):
         question_range = range(lowest_number, highest_number + 1)
-        for i in question_range:
-            for j in question_range:
-                self.append(QuizQuestion(i, j))
 
-        for x, y in itertools.combinations(self, 2):
-            if x.equivalent_to(y):
-                self.remove(y)
+        for x, y in itertools.combinations(question_range, 2):
+            self.append(QuizQuestion(x, y))
 
     def next_question(self):
         return self.pop(random.randrange(len(self)))
 
     def new_question(self):
         return self[random.randrange(len(self))]
-
 
 
 class App(QMainWindow):
@@ -53,8 +49,9 @@ class App(QMainWindow):
         self.top = 50
         self.width = 480
         self.height = 320
-        self.question_list = QuizQuestionList(2, 10)
+        self.question_list = QuizQuestionList(2, 12)
         self.question = self.question_list.new_question()
+        self.player = QMediaPlayer()
         self.initUI()
 
     def initUI(self):
@@ -106,12 +103,16 @@ class App(QMainWindow):
     def on_return_pressed(self):
         if self.text_input.text() == str(self.question.answer):
             self.question_label.setText("✓")
-            QTimer.singleShot(800, self.next_prompt)
+            self.player.setMedia(QMediaContent(QUrl.fromLocalFile("/Users/will/src/keya/CoinDrop.mp3")))
+            self.player.play()
+            QTimer.singleShot(600, self.next_prompt)
             self.statusBar().showMessage("{} to go!"
                                         .format(len(self.question_list)))
         else:
             self.statusBar().showMessage("{} is not correct. Keep going!".format(self.text_input.text()))
             self.question_label.setText("✘")
+            self.player.setMedia(QMediaContent(QUrl.fromLocalFile("/Users/will/src/keya/WrongHonk.mp3")))
+            self.player.play()
             self.question_label.setStyleSheet("color: black; font-size: 54px")
             QTimer.singleShot(1000, self.new_prompt)
 
@@ -119,6 +120,8 @@ class App(QMainWindow):
 
         if not len(self.question_list):
             self.statusBar().showMessage("You did it!")
+            self.player.setMedia(QMediaContent(QUrl.fromLocalFile("/Users/will/src/keya/VictoryStrut.mp3")))
+            self.player.play()
             self.question_label.setText(">:)")
 
 if __name__ == '__main__':
