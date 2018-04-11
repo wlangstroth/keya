@@ -103,7 +103,7 @@ class App(QMainWindow):
     def on_return_pressed(self):
         if self.text_input.text() == str(self.question.answer):
             self.question_label.setText("✓")
-            self.player.setMedia(QMediaContent(QUrl.fromLocalFile("/Users/will/src/keya/CoinDrop.mp3")))
+            self.player.setMedia(QMediaContent(QUrl.fromLocalFile("/Users/will/src/keya/go-me-go-you.m4a")))
             self.player.play()
             QTimer.singleShot(600, self.next_prompt)
             self.statusBar().showMessage("{} to go!"
@@ -123,6 +123,8 @@ class App(QMainWindow):
             self.player.setMedia(QMediaContent(QUrl.fromLocalFile("/Users/will/src/keya/VictoryStrut.mp3")))
             self.player.play()
             self.question_label.setText(">:)")
+            self.question_list = QuizQuestionList(2, 4)
+            self.question = self.question_list.new_question()
 
 if __name__ == '__main__':
     import sys
