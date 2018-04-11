@@ -49,7 +49,8 @@ class App(QMainWindow):
         self.top = 50
         self.width = 480
         self.height = 320
-        self.question_list = QuizQuestionList(2, 12)
+        self.highest_multiplier = 12
+        self.question_list = QuizQuestionList(2, self.highest_multiplier)
         self.question = self.question_list.new_question()
         self.player = QMediaPlayer()
         self.initUI()
@@ -123,7 +124,7 @@ class App(QMainWindow):
             self.player.setMedia(QMediaContent(QUrl.fromLocalFile("/Users/will/src/keya/VictoryStrut.mp3")))
             self.player.play()
             self.question_label.setText(">:)")
-            self.question_list = QuizQuestionList(2, 4)
+            self.question_list = QuizQuestionList(2, self.highest_multiplier)
             self.question = self.question_list.new_question()
 
 if __name__ == '__main__':
